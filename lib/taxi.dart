@@ -33,50 +33,10 @@ class TaxiStepper extends StatefulWidget {
   State<TaxiStepper> createState() => _TaxiStepperState();
 }
 
-class MyStatelessWidget extends StatelessWidget {
-  const MyStatelessWidget({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Stepper(
-      controlsBuilder: (BuildContext context, {VoidCallback? onStepContinue, VoidCallback? onStepCancel}) {
-        return Row(
-          children: [
-            TextButton(
-              onPressed: onStepContinue,
-              child: const Text('NEXT'),
-            ),
-            TextButton(
-              onPressed: onStepCancel,
-              child: const Text('CANCEL'),
-            ),
-          ],
-        );
-      },
-      steps: const <Step>[
-        Step(
-          title: Text('A'),
-          content: SizedBox(
-            width: 100.0,
-            height: 100.0,
-          ),
-        ),
-        Step(
-          title: Text('B'),
-          content: SizedBox(
-            width: 100.0,
-            height: 100.0,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _TaxiStepperState extends State<TaxiStepper> {
   final int _length = 3;
   int _index = 0;
-  TextEditingController date = TextEditingController();
+  late final DateTime date;
   TextEditingController time = TextEditingController();
   TextEditingController location = TextEditingController();
   TextEditingController comment = TextEditingController();
@@ -85,48 +45,30 @@ class _TaxiStepperState extends State<TaxiStepper> {
         Step(
           state: _index <= 0 ? StepState.editing : StepState.complete,
           isActive: _index >= 0,
-          title: const Text('地點'),
+          title: const Text('日期'),
           content: Column(
             children: [
-              TextField(
-                controller: date,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Full Name',
-                ),
-              ),
-              const SizedBox(
-                height: 15,
-              ),
               DatePicker(),
+              SizedBox(
+                height: 8,
+              ),
             ],
           ),
         ),
         Step(
             state: _index <= 1 ? StepState.editing : StepState.complete,
             isActive: _index >= 1,
-            title: const Text('時間'),
+            title: const Text('地點'),
             content: Column(
               children: [
-                const SizedBox(
-                  height: 8,
-                ),
                 TextField(
-                  controller: date,
+                  controller: location,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Full House Address',
                   ),
                 ),
                 const SizedBox(
                   height: 8,
-                ),
-                TextField(
-                  controller: date,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Pin Code',
-                  ),
                 ),
               ],
             )),
@@ -136,41 +78,26 @@ class _TaxiStepperState extends State<TaxiStepper> {
             title: const Text('備註'),
             content: Column(
               children: [
-                const SizedBox(
-                  height: 8,
-                ),
                 TextField(
-                  controller: date,
+                  controller: comment,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Full House Address',
                   ),
                 ),
                 const SizedBox(
                   height: 8,
-                ),
-                TextField(
-                  controller: date,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Pin Code',
-                  ),
                 ),
               ],
             )),
         Step(
             state: StepState.complete,
             isActive: _index >= 3,
-            title: const Text('Confirm'),
+            title: const Text('確認以上項目'),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text('Name: ${date.text}'),
-                Text('Email: ${date.text}'),
-                const Text('Password: *****'),
-                Text('Address : ${date.text}'),
-                Text('PinCode : ${date.text}'),
+                  Text(comment.text.isEmpty ? '' : '備註: ${comment.text}'),
               ],
             ))
       ];
@@ -200,27 +127,32 @@ class _TaxiStepperState extends State<TaxiStepper> {
       },
       controlsBuilder: (context, {onStepContinue, onStepCancel}) {
         final isLastStep = _index == stepList().length - 1;
-        return Container(
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onStepContinue,
-                  child: (isLastStep) ? const Text('Submit') : const Text('Next'),
-                ),
+        return Column(
+          children: [
+            // Expanded(
+            //   child: ElevatedButton(
+            //     onPressed: onStepContinue,
+            //     child: (isLastStep) ? const Text('送出申請') : const Text('下一步'),
+            //   ),
+            // ),
+            SizedBox(
+              width: 280,
+              child: ElevatedButton(
+                onPressed: onStepContinue,
+                child: (isLastStep) ? const Text('送出申請') : const Text('下一步'),
               ),
-              const SizedBox(
-                width: 10,
-              ),
-              if (_index > 0)
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: onStepCancel,
-                    child: const Text('Back'),
-                  ),
-                )
-            ],
-          ),
+            ),
+            const SizedBox(
+              width: 8,
+            ),
+            // if (_index > 0)
+            //   Expanded(
+            //     child: ElevatedButton(
+            //       onPressed: onStepCancel,
+            //       child: const Text('返回'),
+            //     ),
+            //   )
+          ],
         );
       },
       steps: stepList(),
