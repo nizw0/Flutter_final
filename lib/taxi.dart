@@ -125,7 +125,7 @@ class _TaxiStepperState extends State<TaxiStepper> {
           _index = index;
         });
       },
-      controlsBuilder: (context, {onStepContinue, onStepCancel}) {
+      controlsBuilder: (context, ControlsDetails controls) {
         final isLastStep = _index == stepList().length - 1;
         return Column(
           children: [
@@ -138,7 +138,7 @@ class _TaxiStepperState extends State<TaxiStepper> {
             SizedBox(
               width: 280,
               child: ElevatedButton(
-                onPressed: onStepContinue,
+                onPressed: controls.onStepContinue,
                 child: (isLastStep) ? const Text('送出申請') : const Text('下一步'),
               ),
             ),
@@ -148,7 +148,7 @@ class _TaxiStepperState extends State<TaxiStepper> {
             // if (_index > 0)
             //   Expanded(
             //     child: ElevatedButton(
-            //       onPressed: onStepCancel,
+            //       onPressed: controls.onStepCancel,
             //       child: const Text('返回'),
             //     ),
             //   )
