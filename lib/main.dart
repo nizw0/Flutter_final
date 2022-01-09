@@ -1,19 +1,13 @@
-import 'package:flutter/gestures.dart' show DragStartBehavior;
+import 'package:final_project/taxi.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:final_project/login.dart';
 import 'package:final_project/register.dart';
-import 'package:final_project/test.dart';
 
 void main() => runApp(const MainPage());
 
-class MainPage extends StatefulWidget {
+class MainPage extends StatelessWidget {
   const MainPage({Key? key}) : super(key: key);
 
-  @override
-  State<MainPage> createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,17 +23,25 @@ class _MainPageState extends State<MainPage> {
         ),
       ),
       home: Scaffold(
-        appBar: const MainAppBar(
-          title: Text('最新消息'),
+        appBar: MainAppBar(
+          title: '最新消息',
+          iconButton: IconButton(onPressed: () {}, icon: const Icon(Icons.home)),
         ),
         body: ListView(
-            children: const [
-              BodyCard('1'),
-              BodyCard('2'),
-              BodyCard('3'),
-              BodyCard('4'),
-              BodyCard('5')
-            ],
+          children: const [
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+            BodyCard('some information'),
+          ],
         ),
         bottomNavigationBar: const BottomNavigator(),
         floatingActionButton: const BottomNavigatorButton(),
@@ -106,22 +108,21 @@ class BottomNavigator extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             IconButton(
-              icon: const Icon(Icons.search),
+              icon: const Icon(Icons.home),
               color: Colors.white,
-              iconSize: 22,
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(Icons.notifications),
-              color: Colors.white,
-              iconSize: 22,
+              iconSize: 26,
               onPressed: () {},
             ),
             IconButton(
               icon: const Icon(Icons.settings),
               color: Colors.white,
-              iconSize: 22,
-              onPressed: () {},
+              iconSize: 26,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              },
             ),
           ],
         ),
@@ -156,13 +157,15 @@ class BottomNavigatorButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      onPressed: () {},
-      tooltip: 'bookmark',
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxiPage()));
+      },
+      tooltip: '叫車',
       child: const Icon(
-        Icons.bookmark,
-        size: 22,
+        Icons.directions_car,
+        size: 26,
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: const Color.fromARGB(255, 66, 66, 66),
     );
   }
 }
@@ -171,7 +174,6 @@ class BodyCard extends StatelessWidget {
   const BodyCard(this.data, {Key? key}) : super(key: key);
 
   final String data;
-
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -183,7 +185,7 @@ class BodyCard extends StatelessWidget {
             width: 300,
             height: 120,
             child: Center(
-              child: Text(data),
+              child: Text(data, style: const TextStyle(fontSize: 20)),
             ),
           ),
         ),
@@ -194,9 +196,11 @@ class BodyCard extends StatelessWidget {
 }
 
 class MainAppBar extends StatelessWidget with PreferredSizeWidget {
-  const MainAppBar({required this.title, Key? key}) : super(key: key);
+  const MainAppBar({Key? key, required this.title, required this.iconButton}) : super(key: key);
 
-  final Widget title;
+  final String title;
+  final IconButton? iconButton;
+  final _style = const TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
 
   @override
   Widget build(BuildContext context) {
@@ -204,9 +208,9 @@ class MainAppBar extends StatelessWidget with PreferredSizeWidget {
       foregroundColor: Colors.black,
       backgroundColor: Colors.white,
       elevation: 0,
-      title: title,
+      title: Text(title, style: _style),
       centerTitle: false,
-      leading: const Icon(null),
+      leading: iconButton ?? const Icon(null),
       );
   }
 
