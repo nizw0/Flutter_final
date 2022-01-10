@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:final_project/main.dart';
@@ -9,27 +11,20 @@ class TaxiPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'taxi',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: Colors.white,
-        fontFamily: 'Time News Roman',
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: MainAppBar(
+        title: '叫車',
+        iconButton: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.arrow_back)),
       ),
-      home: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: MainAppBar(
-          title: '叫車',
-          iconButton: IconButton(onPressed: (){
-            Navigator.pop(context);
-          }, icon: const Icon(Icons.arrow_back)),
-        ),
-        body:  const TaxiStepper(),
-        bottomNavigationBar: const BottomNavigator(),
-        floatingActionButton: const BottomNavigatorButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
-      ),
-      debugShowCheckedModeBanner: false,
+      body: const TaxiStepper(),
+      bottomNavigationBar: const BottomNavigator(),
+      floatingActionButton: null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
     );
   }
 }
@@ -42,10 +37,10 @@ class TaxiStepper extends StatefulWidget {
 }
 
 class _TaxiStepperState extends State<TaxiStepper> {
-  static const _length = 3;
   var _index = 0;
   final _date = GlobalKey<_DatePickerState>();
   final _location = GlobalKey<_MenuButtonState>();
+  final _address = TextEditingController();
   final _comment = TextEditingController();
 
   static const _titleStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
@@ -71,15 +66,39 @@ class _TaxiStepperState extends State<TaxiStepper> {
         Step(
             state: _index <= 1 ? StepState.indexed : StepState.complete,
             isActive: _index >= 1,
-            title: const Text('地點', style:_titleStyle),
+            title: const Text('出發地點', style: _titleStyle),
+            content: Column(
+              children: [
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    style: _contentStyle,
+                    controller: _address,
+                    decoration: InputDecoration(
+                      counterStyle: _contentStyle,
+                      suffixIcon: _address.text.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: _address.clear,
+                              icon: const Icon(Icons.clear),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            )),
+        Step(
+            state: _index <= 2 ? StepState.indexed : StepState.complete,
+            isActive: _index >= 2,
+            title: const Text('到達地點', style: _titleStyle),
             content: Column(
               children: [
                 MenuButton(key: _location),
               ],
             )),
         Step(
-            state: _index <= 2 ? StepState.indexed : StepState.complete,
-            isActive: _index >= 2,
+            state: _index <= 3 ? StepState.indexed : StepState.complete,
+            isActive: _index >= 3,
             title: const Text('備註', style: _titleStyle),
             content: Column(
               children: [
@@ -103,14 +122,15 @@ class _TaxiStepperState extends State<TaxiStepper> {
             )),
         Step(
             state: StepState.complete,
-            isActive: _index >= 3,
+            isActive: _index >= 4,
             title: const Text('確認以上項目', style: _titleStyle),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text('日期︰${_date.currentState?.getText()}', style: _contentStyle),
-                Text('地點︰${_location.currentState?.value}', style: _contentStyle),
+                Text('出發地點︰${_address.text}', style: _contentStyle),
+                Text('到達地點︰${_location.currentState?.value}', style: _contentStyle),
                 _comment.text.isEmpty ? Container() : Text('備註︰${_comment.text}', style: _contentStyle),
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
@@ -145,7 +165,7 @@ class _TaxiStepperState extends State<TaxiStepper> {
         }
       },
       onStepContinue: () {
-        if (_index < _length) {
+        if (_index < 4) {
           setState(() {
             _index++;
           });
@@ -175,15 +195,24 @@ class _TaxiStepperState extends State<TaxiStepper> {
               child: ElevatedButton(
                 style: ButtonStyle(
                     shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ))),
-                onPressed: controls.onStepContinue,
+                  borderRadius: BorderRadius.circular(10.0),
+                ))),
+                onPressed: isLastStep
+                    ? () async {
+                        FirebaseFirestore.instance.collection('order').doc().set({
+                          'uid': FirebaseAuth.instance.currentUser?.uid,
+                          'datetime': _date.currentState?.dateTime.toString().trim(),
+                          'address': _address.text.trim(),
+                          'location': _location.currentState?.value.toString().trim(),
+                          'comment': _comment.text.trim()
+                        });
+                        Navigator.pop(context);
+                      }
+                    : controls.onStepContinue,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(isLastStep ? '送出' : '下一步', style: _submitStyle)
-                    ),
-                  ),
-                ),
+                    padding: const EdgeInsets.all(8.0), child: Text(isLastStep ? '送出' : '下一步', style: _submitStyle)),
+              ),
+            ),
             // if (_index > 0)
             //   Expanded(
             //     child: ElevatedButton(

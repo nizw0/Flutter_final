@@ -1,6 +1,9 @@
 import 'package:final_project/register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:final_project/main.dart';
+import 'package:final_project/authentication.dart';
+import 'package:provider/provider.dart';
 
 void main() => runApp(const LoginPage());
 
@@ -21,14 +24,24 @@ class Login extends StatefulWidget {
 }
 
 class LoginState extends State<Login> {
-  final TextEditingController _account = TextEditingController();
+  final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  var _pwdObscure = false;
+  final GlobalKey _formKey = GlobalKey<FormState>();
+  late final FirebaseAuth _firebaseAuth;
+  late final Authentication _auth = Authentication(_firebaseAuth);
 
   @override
   void initState() {
     super.initState();
-    _account.addListener(() => setState(() {}));
-    _password.addListener(() => setState(() {}));
+    _email.addListener(() => setState(() {}));
+    _password.addListener(() {
+      setState(() {
+        if (_password.text.isEmpty) {
+          _pwdObscure = true;
+        }
+      });
+    });
   }
 
   @override
@@ -44,6 +57,8 @@ class LoginState extends State<Login> {
         ),
       ),
       body: Form(
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        key: _formKey,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -54,17 +69,17 @@ class LoginState extends State<Login> {
                   height: 80,
                   child: TextFormField(
                     autofocus: true,
-                    controller: _account,
+                    controller: _email,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
-                      labelText: '帳號',
+                      labelText: '電子信箱',
                       prefixIcon: const Icon(Icons.account_box),
-                      suffixIcon: _account.text.isEmpty
+                      suffixIcon: _email.text.isEmpty
                           ? null
                           : IconButton(
-                              onPressed: _account.clear,
+                              onPressed: _email.clear,
                               icon: const Icon(Icons.clear),
                             ),
                     ),
@@ -90,10 +105,15 @@ class LoginState extends State<Login> {
                       suffixIcon: _password.text.isEmpty
                           ? null
                           : IconButton(
-                              onPressed: _password.clear,
-                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _pwdObscure = !_pwdObscure;
+                                });
+                              },
+                              icon: Icon(_pwdObscure ? Icons.visibility : Icons.visibility_off),
                             ),
                     ),
+                    obscureText: _pwdObscure,
                     validator: (value) {
                       return null;
                     },
@@ -108,7 +128,14 @@ class LoginState extends State<Login> {
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ))),
-                  onPressed: () {},
+                  onPressed: () {
+                    context
+                        .read<Authentication>()
+                        .signIn(email: _email.text.trim(), password: _password.text.trim())
+                        .then((value) => value
+                            ? Navigator.pop(context)
+                            : ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('登入失敗'))));
+                  },
                   child: const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Text(
@@ -128,8 +155,8 @@ class LoginState extends State<Login> {
                 child: ElevatedButton(
                   style: ButtonStyle(
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ))),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ))),
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterPage()));
                   },

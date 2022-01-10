@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:final_project/main.dart';
+import 'package:final_project/profile.dart';
 
 void main() => runApp(const RegisterPage());
 
@@ -35,8 +38,9 @@ class RegisterState extends State<Register> {
   var _pwdObscure = true;
   var _repwdObscure = true;
 
-  late final Form accountForm;
-  late final Form infoForm;
+  final _accountFormKey = GlobalKey<FormState>();
+  final _infoFormKey = GlobalKey<FormState>();
+  final _phoneFormKey = GlobalKey<FormState>();
   late final PageController _controller;
 
   bool _checkEmail(email) =>
@@ -104,6 +108,7 @@ class RegisterState extends State<Register> {
           Column(children: [
             Form(
               autovalidateMode: AutovalidateMode.onUserInteraction,
+              key: _accountFormKey,
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -221,7 +226,9 @@ class RegisterState extends State<Register> {
                               borderRadius: BorderRadius.circular(10.0),
                             ))),
                             onPressed: () {
-                              _controller.nextPage(duration: _duration, curve: _curve);
+                              if (_accountFormKey.currentState!.validate()) {
+                                _controller.nextPage(duration: _duration, curve: _curve);
+                              }
                             },
                             child: const Padding(
                               padding: EdgeInsets.all(8.0),
@@ -242,6 +249,7 @@ class RegisterState extends State<Register> {
           Column(
             children: [
               Form(
+                key: _infoFormKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -341,7 +349,9 @@ class RegisterState extends State<Register> {
                                 borderRadius: BorderRadius.circular(10.0),
                               ))),
                               onPressed: () {
-                                _controller.nextPage(duration: _duration, curve: _curve);
+                                if (_infoFormKey.currentState!.validate()) {
+                                  _controller.nextPage(duration: _duration, curve: _curve);
+                                }
                               },
                               child: const Padding(
                                 padding: EdgeInsets.all(8.0),
@@ -363,6 +373,7 @@ class RegisterState extends State<Register> {
           Column(
             children: [
               Form(
+                key: _phoneFormKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -433,9 +444,25 @@ class RegisterState extends State<Register> {
                                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10.0),
                               ))),
-                              onPressed: () {
-                                // _controller.nextPage(duration: _duration, curve: _curve);
-                                Navigator.pop(context);
+                              onPressed: () async {
+                                if (_phoneFormKey.currentState!.validate()) {
+                                  var email = _email.text.trim();
+                                  var password = _pwd.text.trim();
+                                  FirebaseAuth.instance
+                                      .createUserWithEmailAndPassword(email: email, password: password);
+                                  await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+                                  User? user = FirebaseAuth.instance.currentUser;
+                                  FirebaseFirestore.instance.collection('data').doc(user?.uid).set({
+                                    'name': _name.text.trim(),
+                                    'id': _id.text.trim(),
+                                    'address': _address.text.trim(),
+                                    'email': _email.text.trim(),
+                                    'phone': _phone.text.trim(),
+                                    'permission': '0',
+                                  });
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                }
                               },
                               child: const Padding(
                                 padding: EdgeInsets.all(8.0),

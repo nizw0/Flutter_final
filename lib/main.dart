@@ -1,153 +1,180 @@
-import 'package:final_project/taxi.dart';
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_project/manager.dart';
+import 'package:final_project/profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:final_project/taxi.dart';
 import 'package:final_project/login.dart';
 import 'package:final_project/register.dart';
+import 'package:provider/provider.dart';
+import 'authentication.dart';
+import 'driver.dart';
 
-void main() => runApp(const MainPage());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MainPage());
+}
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
 
   @override
+  State<StatefulWidget> createState() => MainPageState();
+}
+
+class MainPageState extends State<MainPage> {
+  final _key = GlobalKey<BottomNavigatorState>();
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Main',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: Colors.white,
-        fontFamily: 'Time News Roman',
-        textTheme: const TextTheme(
-          headline1: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold),
-          headline6: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-          bodyText2: TextStyle(fontSize: 16.0, fontFamily: 'Hind'),
+    return MultiProvider(
+      providers: [
+        Provider<Authentication>(
+          create: (_) => Authentication(FirebaseAuth.instance),
         ),
+        StreamProvider(
+          create: (context) => context.read<Authentication>().authStateChanges,
+          initialData: null,
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Main',
+        theme: ThemeData(
+          brightness: Brightness.light,
+          primaryColor: Colors.white,
+          fontFamily: 'Time News Roman',
+          textTheme: const TextTheme(
+            headline1: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold),
+            headline6: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+            bodyText2: TextStyle(fontSize: 16.0, fontFamily: 'Hind'),
+          ),
+        ),
+        home: Scaffold(
+          appBar: MainAppBar(
+            title: '最新消息',
+            iconButton: IconButton(
+                onPressed: () {
+                  setState(() {});
+                  _key.currentState?.setState(() {});
+                },
+                icon: const Icon(Icons.update)),
+          ),
+          body: ListView(
+            children: const [
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+              BodyCard('some information'),
+            ],
+          ),
+          bottomNavigationBar: BottomNavigator(key: _key),
+          floatingActionButton: const BottomNavigatorButton(),
+          floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
+        ),
+        debugShowCheckedModeBanner: false,
       ),
-      home: Scaffold(
-        appBar: MainAppBar(
-          title: '最新消息',
-          iconButton: IconButton(onPressed: () {}, icon: const Icon(Icons.home)),
-        ),
-        body: ListView(
-          children: const [
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-            BodyCard('some information'),
-          ],
-        ),
-        bottomNavigationBar: const BottomNavigator(),
-        floatingActionButton: const BottomNavigatorButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
-      ),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class NavDrawer extends StatelessWidget {
-  const NavDrawer({Key? key}) : super(key: key);
+class NavigatorList extends StatelessWidget {
+  const NavigatorList({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    const drawerHeader = UserAccountsDrawerHeader(
-      accountName: Text('Name'),
-      accountEmail: Text('Email'),
-      currentAccountPicture: CircleAvatar(
-        child: FlutterLogo(size: 42.0),
-      ),
-    );
+    final user = FirebaseAuth.instance.currentUser;
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('data').doc(user?.uid).snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+          if (!snapshot.hasData) return const Text('There is no data');
+          return getExpenseItems(context, snapshot);
+        });
+  }
 
-    final drawerItems = ListView(
+  getExpenseItems(BuildContext context, AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+    final user = FirebaseAuth.instance.currentUser;
+    final data = snapshot.data;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        drawerHeader,
-        ListTile(
-          title: const Text('1'),
-          leading: const Icon(Icons.favorite),
-          onTap: () {
-            Navigator.pop(context);
-          },
+        SizedBox(
+          child: user != null && int.parse(data!['permission']) >= 2
+              ? IconButton(
+                  icon: const Icon(Icons.manage_accounts),
+                  color: Colors.white,
+                  iconSize: 26,
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerPage()));
+                  },
+                )
+              : null,
         ),
-        ListTile(
-          title: const Text('2'),
-          leading: const Icon(Icons.comment),
-          onTap: () {
-            Navigator.pop(context);
+        SizedBox(
+          child: user != null && int.parse(data!['permission']).isOdd
+              ? IconButton(
+                  icon: const Icon(Icons.list_alt),
+                  color: Colors.white,
+                  iconSize: 26,
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const DriverPage()));
+                  },
+                )
+              : null,
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings),
+          color: Colors.white,
+          iconSize: 26,
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => user == null ? const LoginPage() : const ProfilePage()));
           },
         ),
       ],
     );
-
-    return Drawer(
-      child: drawerItems,
-    );
   }
 }
 
-class BottomNavigator extends StatelessWidget {
+class BottomNavigator extends StatefulWidget {
   const BottomNavigator({Key? key}) : super(key: key);
 
   @override
+  State<StatefulWidget> createState() => BottomNavigatorState();
+}
+
+class BottomNavigatorState extends State<BottomNavigator> {
+  final user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
+    return const BottomAppBar(
       color: Colors.green,
-      shape: const CircularNotchedRectangle(),
+      shape: CircularNotchedRectangle(),
       notchMargin: 3.0,
       child: IconTheme(
-        data: const IconThemeData(
+        data: IconThemeData(
           color: Colors.black,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.home),
-              color: Colors.white,
-              iconSize: 26,
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              color: Colors.white,
-              iconSize: 26,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              },
-            ),
-          ],
-        ),
+        child: NavigatorList(),
       ),
     );
-    // return BottomNavigationBar(
-    //   currentIndex: 0,
-    //   fixedColor: Colors.black,
-    //   backgroundColor: Colors.white,
-    //   elevation: 0,
-    //   items: const [
-    //     BottomNavigationBarItem(
-    //       icon: Icon(Icons.home),
-    //       label: 'Home',
-    //     ),
-    //     BottomNavigationBarItem(
-    //       icon: Icon(Icons.car_rental),
-    //       label: 'Messages',
-    //     ),
-    //     BottomNavigationBarItem(
-    //       icon: Icon(Icons.person),
-    //       label: 'Profile',
-    //     )
-    //   ],
-    // );
   }
 }
 
@@ -158,7 +185,9 @@ class BottomNavigatorButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxiPage()));
+        if (FirebaseAuth.instance.currentUser != null) {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const TaxiPage()));
+        }
       },
       tooltip: '叫車',
       child: const Icon(
@@ -174,6 +203,7 @@ class BodyCard extends StatelessWidget {
   const BodyCard(this.data, {Key? key}) : super(key: key);
 
   final String data;
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -211,7 +241,7 @@ class MainAppBar extends StatelessWidget with PreferredSizeWidget {
       title: Text(title, style: _style),
       centerTitle: false,
       leading: iconButton ?? const Icon(null),
-      );
+    );
   }
 
   @override
