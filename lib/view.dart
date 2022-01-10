@@ -5,25 +5,25 @@ import 'package:flutter/material.dart';
 import 'package:final_project/main.dart';
 import 'package:intl/intl.dart';
 
-void main() => runApp(const DriverPage());
+void main() => runApp(const ViewPage());
 
-class DriverPage extends StatelessWidget {
-  const DriverPage({Key? key}) : super(key: key);
+class ViewPage extends StatelessWidget {
+  const ViewPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return const Driver();
+    return const View();
   }
 }
 
-class Driver extends StatefulWidget {
-  const Driver({Key? key}) : super(key: key);
+class View extends StatefulWidget {
+  const View({Key? key}) : super(key: key);
 
   @override
-  State<Driver> createState() => DriverState();
+  State<View> createState() => ViewState();
 }
 
-class DriverState extends State<Driver> {
+class ViewState extends State<View> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -35,30 +35,30 @@ class DriverState extends State<Driver> {
       body: user == null
           ? null
           : Container(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                children: [
-                  const SizedBox(
-                    height: 540,
-                    child: ExpenseList(),
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 540,
+              child: ExpenseList(),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, null);
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  '確定',
+                  style: TextStyle(
+                    fontSize: 18,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context, null);
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        '確定',
-                        style: TextStyle(
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
       bottomNavigationBar: const BottomNavigator(),
       floatingActionButton: const BottomNavigatorButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
@@ -83,11 +83,11 @@ class ExpenseList extends StatelessWidget {
     const _style = TextStyle(fontSize: 18);
     final user = FirebaseAuth.instance.currentUser;
     return snapshot.data?.docs.map((doc) {
-        return doc['driver'] == user?.uid ? ListTile(
-          title: Text(doc['address'] + ' -----> ' + doc['location'], style: _style),
-          subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(DateTime.parse(doc['datetime']))),
-          trailing: Text(doc['comment'], style: _style),
-        ) : const ListTile();
+      return doc['passenger'] == user?.uid ? ListTile(
+        title: Text(doc['address'] + ' -----> ' + doc['location'], style: _style),
+        subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(DateTime.parse(doc['datetime']))),
+        trailing: Text(doc['comment'], style: _style),
+      ) : const ListTile();
     }).toList();
   }
 }

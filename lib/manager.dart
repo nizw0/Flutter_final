@@ -43,7 +43,9 @@ class ManagerState extends State<Manager> {
                     child: ExpenseList(),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                     child: const Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Text(
@@ -58,6 +60,8 @@ class ManagerState extends State<Manager> {
               ),
             ),
       bottomNavigationBar: const BottomNavigator(),
+      floatingActionButton: const BottomNavigatorButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
     );
   }
 }
@@ -79,7 +83,15 @@ class ExpenseList extends StatelessWidget {
     const _style = TextStyle(fontSize: 18);
     return snapshot.data?.docs
         .map((doc) => ListTile(
-              title: Text(doc['address'] + ' -----> ' + doc['location'], style: _style),
+              title: Text(
+                  doc['address'] +
+                      ' / ' +
+                      doc['passenger'].toString().substring(0, 5) +
+                      '\n' +
+                      doc['location'] +
+                      ' / ' +
+                      doc['driver'].toString().substring(0, 5),
+                  style: _style),
               subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(DateTime.parse(doc['datetime']))),
               trailing: Text(doc['comment'], style: _style),
             ))

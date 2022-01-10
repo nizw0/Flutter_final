@@ -24,12 +24,10 @@ class Profile extends StatefulWidget {
 
 class ProfileState extends State<Profile> {
   static const _style = TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
-  final user = FirebaseAuth.instance.currentUser;
-
-  Future<DocumentSnapshot> getDocument() async => FirebaseFirestore.instance.collection('data').doc(user?.uid).get();
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       appBar: MainAppBar(
         title: '個人資料',

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:final_project/manager.dart';
 import 'package:final_project/profile.dart';
+import 'package:final_project/view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -27,10 +28,9 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
-  final _key = GlobalKey<BottomNavigatorState>();
-
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     return MultiProvider(
       providers: [
         Provider<Authentication>(
@@ -59,27 +59,28 @@ class MainPageState extends State<MainPage> {
             iconButton: IconButton(
                 onPressed: () {
                   setState(() {});
-                  _key.currentState?.setState(() {});
                 },
-                icon: const Icon(Icons.update)),
+                icon: const Icon(Icons.refresh)),
           ),
-          body: ListView(
-            children: const [
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-              BodyCard('some information'),
-            ],
-          ),
-          bottomNavigationBar: BottomNavigator(key: _key),
+          body: user == null
+              ? const Center(child: Text('請先點齒輪進行登入/註冊'))
+              : ListView(
+                  children: const [
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                    BodyCard('some information'),
+                  ],
+                ),
+          bottomNavigationBar: const BottomNavigator(),
           floatingActionButton: const BottomNavigatorButton(),
           floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
         ),
@@ -89,9 +90,14 @@ class MainPageState extends State<MainPage> {
   }
 }
 
-class NavigatorList extends StatelessWidget {
+class NavigatorList extends StatefulWidget {
   const NavigatorList({Key? key}) : super(key: key);
 
+  @override
+  State<StatefulWidget> createState() => NavigatorListState();
+}
+
+class NavigatorListState extends State<NavigatorList> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -109,6 +115,17 @@ class NavigatorList extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        SizedBox(
+          child: IconButton(
+            icon: const Icon(Icons.refresh),
+            color: Colors.white,
+            iconSize: 26,
+            onPressed: () {
+              setState(() {
+              });
+            },
+          ),
+        ),
         SizedBox(
           child: user != null && int.parse(data!['permission']) >= 2
               ? IconButton(
@@ -129,6 +146,18 @@ class NavigatorList extends StatelessWidget {
                   iconSize: 26,
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const DriverPage()));
+                  },
+                )
+              : null,
+        ),
+        SizedBox(
+          child: user != null
+              ? IconButton(
+                  icon: const Icon(Icons.trip_origin),
+                  color: Colors.white,
+                  iconSize: 26,
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ViewPage()));
                   },
                 )
               : null,
@@ -155,8 +184,6 @@ class BottomNavigator extends StatefulWidget {
 }
 
 class BottomNavigatorState extends State<BottomNavigator> {
-  final user = FirebaseAuth.instance.currentUser;
-
   @override
   void initState() {
     super.initState();
@@ -164,6 +191,7 @@ class BottomNavigatorState extends State<BottomNavigator> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
     return const BottomAppBar(
       color: Colors.green,
       shape: CircularNotchedRectangle(),
