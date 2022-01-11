@@ -200,7 +200,8 @@ class _TaxiStepperState extends State<TaxiStepper> {
                 onPressed: isLastStep
                     ? () async {
                         FirebaseFirestore.instance.collection('order').doc().set({
-                          'uid': FirebaseAuth.instance.currentUser?.uid,
+                          'passenger': FirebaseAuth.instance.currentUser?.uid,
+                          'driver': '',
                           'datetime': _date.currentState?.dateTime.toString().trim(),
                           'address': _address.text.trim(),
                           'location': _location.currentState?.value.toString().trim(),

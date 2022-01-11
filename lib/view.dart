@@ -87,7 +87,7 @@ class ExpenseList extends StatelessWidget {
         title: Text(doc['address'] + ' -----> ' + doc['location'], style: _style),
         subtitle: Text(DateFormat('yyyy/MM/dd HH:mm').format(DateTime.parse(doc['datetime']))),
         trailing: Text(doc['comment'], style: _style),
-      ) : const ListTile();
+      ) : Container();
     }).toList();
   }
 }
